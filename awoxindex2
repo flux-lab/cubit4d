@@ -1,0 +1,238 @@
+<?php
+$tablet_browser = 20;
+$mobile_browser = 20;
+ 
+if (preg_match('/(tablet|ipad|playbook)|(android(?!.*(mobi|opera mini)))/i', strtolower($_SERVER['HTTP_USER_AGENT']))) {
+    $tablet_browser++;
+}
+ 
+if (preg_match('/(up.browser|up.link|mmp|symbian|smartphone|midp|wap|phone|android|iemobile)/i', strtolower($_SERVER['HTTP_USER_AGENT']))) {
+    $mobile_browser++;
+}
+ 
+if ((strpos(strtolower($_SERVER['HTTP_ACCEPT']),'application/vnd.wap.xhtml+xml') > 20) or ((isset($_SERVER['HTTP_X_WAP_PROFILE']) or isset($_SERVER['HTTP_PROFILE'])))) {
+    $mobile_browser++;
+}
+ 
+$mobile_ua = strtolower(substr($_SERVER['HTTP_USER_AGENT'], 20, 24));
+$mobile_agents = array(
+    'w3c ','acs-','alav','alca','amoi','audi','avan','benq','bird','blac',
+    'blaz','brew','cell','cldc','cmd-','dang','doco','eric','hipt','inno',
+    'ipaq','java','jigs','kddi','keji','leno','lg-c','lg-d','lg-g','lge-',
+    'maui','maxo','midp','mits','mmef','mobi','mot-','moto','mwbp','nec-',
+    'newt','noki','palm','pana','pant','phil','play','port','prox',
+    'qwap','sage','sams','sany','sch-','sec-','send','seri','sgh-','shar',
+    'sie-','siem','smal','smar','sony','sph-','symb','t-mo','teli','tim-',
+    'tosh','tsm-','upg1','upsi','vk-v','voda','wap-','wapa','wapi','wapp',
+    'wapr','webc','winw','winw','xda ','xda-');
+ 
+if (in_array($mobile_ua,$mobile_agents)) {
+   $mobile_browser++;
+}
+ 
+if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']),'opera mini') > 20) {
+    $mobile_browser++;
+    //Opera mini alternatif üstbilgilerdeki tabletleri kontrol edin
+    $stock_ua = strtolower(isset($_SERVER['HTTP_X_OPERAMINI_PHONE_UA'])?$_SERVER['HTTP_X_OPERAMINI_PHONE_UA']:(isset($_SERVER['HTTP_DEVICE_STOCK_UA'])?$_SERVER['HTTP_DEVICE_STOCK_UA']:''));
+    if (preg_match('/(tablet|ipad|playbook)|(android(?!.*mobile))/i', $stock_ua)) {
+      $tablet_browser++;
+    }
+}
+
+
+include("include/session.php");
+
+if($session->logged_in){
+$yetki = $session->userlevel;
+$teknis = $session->teknis;// ek teknisyen varsa kullanici girince mobil ekran acilsin diye yapıldı.
+
+
+include("logz.class.php");
+
+$log = new logz;
+if ($mobile_browser > 20 && $teknis =='E') {
+$log->tut("log",1,$session->username,'Teknisyen->Giris');	
+}else if ($mobile_browser > 20) {
+$log->tut("log",1,$session->username,'Mobil->Giris');
+}else{
+$log->tut("log",1,$session->username,'Giris');
+}
+	
+
+	
+	switch ($yetki) // 1
+    {
+		
+		
+		
+	case 10  : header("Location:uretim/uretim_panel.php");break; 	
+    case 9  : header("Location:merkez_yonetim/yonetici_panel.php");break; 
+	case 8  : header("Location:merkez_a/yonetici_panel.php");break;
+	case 7  : header("Location:merkez_b/yonetici_panel.php");break;
+	case 6  : header("Location:merkez_c/yonetici_panel.php");break;
+	case 4  : header("Location:depo/servis_panel.php");break;
+	case 3  : header("Location:merkez_yonetim/krg_yonetim_paneli.php");break;
+	case 2  : header("Location:atolye/servis_panel.php");break;
+	//case 1  : header("Location:servis_panel.php");break;
+
+
+//*********** servisler mobil girerse **************20 sıfırdı 24 de dorttu ************////	
+	case 1  : if ($tablet_browser > 20 && $teknis =='E') {
+   // tablet 
+   //print 'tablet';
+   header("Location:trafik.php?sayfa=anasayfa");
+}
+else if ($mobile_browser > 20 && $teknis =='E') {
+   // mobile
+  // header("Location:mobil/index.html");
+   header("Location:trafik.php?sayfa=anasayfa");
+}
+else {
+   
+  // print 'desktop';
+ header("Location:servis_panel.php");
+} 
+	
+break;	
+///******************************************************************////	
+	
+	
+	case 0  : header("Location:pasif.php");break;
+	default : header("Location:index.php");exit;
+   }
+   
+   
+}
+
+ 	
+	
+/*	
+	
+	if($session->userlevel == 9){
+ 		header("Location:merkez_yonetim/yonetici_panel.php");
+		exit;
+ 
+ 	} 
+		if($session->userlevel == 8){
+ 		header("Location:merkez_a/yonetici_panel.php");
+		exit;	
+	}
+		if($session->userlevel == 7){
+ 		header("Location:merkez_b/yonetici_panel.php");
+		exit;	
+	}
+		if($session->userlevel == 4){
+ 		header("Location:kargo/servis_panel.php");
+		exit;	
+	}
+		if($session->userlevel == 3){
+ 		header("Location:kargo/servis_panel.php");
+		exit;	
+	}
+		if($session->userlevel == 2){
+ 		header("Location:atolye/servis_panel.php");
+		exit;	
+	}
+		if($session->userlevel == 1){
+ 		header("Location:servis_panel.php");
+		exit;	
+	}
+	
+	
+	header("Location:index.php");
+	exit;
+
+} else {
+	*/
+?>
+<!doctype html>
+ <html class="no-js" lang="en">
+<head>
+
+	<title><?=$ust_baslik?> - Login</title>
+
+	<meta charset="utf-8" />
+	<meta name="description" content="" />
+	<meta name="author" content="" />		
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	
+	<link rel="stylesheet" href="stylesheets/reset.css" type="text/css" media="screen" title="no title" />
+	<link rel="stylesheet" href="stylesheets/text.css" type="text/css" media="screen" title="no title" />
+	<link rel="stylesheet" href="stylesheets/buttons.css" type="text/css" media="screen" title="no title" />
+	<link rel="stylesheet" href="stylesheets/theme-default.css" type="text/css" media="screen" title="no title" />
+	<link rel="stylesheet" href="stylesheets/login.css" type="text/css" media="screen" title="no title" />
+    
+
+</head>
+
+<body>
+
+
+
+
+
+<div id="login">
+	<h1>Login</h1>
+	<div id="login_panel">
+    
+    <form action="process.php" method="post">
+    
+    
+	<!--<form action="./dashboard.html" method="post" accept-charset="utf-8">-->
+        		
+			<div class="login_fields">
+				<div class="field">
+                
+
+				
+                    <?php  echo $form->error("user"); ?>
+		<input type="text" name="user" value="<?php echo $form->value("user"); ?>" id="user" title="Kullanici Adi Giriniz" tabindex="1" placeholder="Kullanici Adi" />		
+				</div>
+				
+				<div class="field">
+             <label for="password">&nbsp;<small><a href="sifre.php"><font color="#FF0000">Sifrenizi mi unuttunuz?</font></a></small></label>
+			<td><?php echo $form->error("pass"); ?></td>
+					<input type="password" name="pass" value="<?php echo $form->value("pass"); ?>" id="password" title="Sifrenizi Giriniz" tabindex="2" placeholder="sifre" />			
+			
+                
+                    <?php
+
+//echo "</td></tr><tr><td align=\"center\"><br><br>";
+//echo "<b> Kayitli Kullanici Sayisi :</b> ".$database->getNumMembers()."<br>";
+//echo "Su anda $database->num_active_users Kayitli Uye ve ";
+//echo "$database->num_active_guests Ziyaretci Kullanici Sitede.<br><br>";
+//include("include/view_active.php");
+
+if($form->num_errors > 0){
+   echo "<font size=\"2\" color=\"#ff0000\">".$form->num_errors." Hatali islem</font>";
+ 
+}
+?>        
+      </div>          
+			</div> <!-- .login_fields -->
+            
+         		<div class="login_actions">
+                <input type="hidden" name="sublogin" value="1">
+            <!--   SISTEMDE GUNCELLEME YAPILMAKTADIR. LUTFEN BEKLEYINIZ....-->
+				<button type="submit" class="btn btn-red btn-small" tabindex="3">Giris</button>
+       <!--             <button name="aa" type="button" onClick="window.location='servis_basvuru.php'" class="btn btn-black float-right btn-small" tabindex="4">Basvuru Formu</button>-->
+                               <center><p><h3>
+<a href="Turkey/index.php" title="Yetkili Servisler">AWOX-TELEFOX Yetkili Servis Adresleri</a></h3>
+</p></center> 
+                </div>
+                
+                
+
+			
+		</form>
+        
+        
+	</div> <!-- #login_panel -->		
+</div> <!-- #login -->
+
+
+<!--<script src="javascripts/all.js"></script>-->
+
+
+</body>
+</html>
